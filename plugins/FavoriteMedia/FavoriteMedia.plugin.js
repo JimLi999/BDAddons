@@ -1897,9 +1897,30 @@
 
 				async patchGIFTab() {
 					const GIFPicker = await ReactComponents.getComponentByName("GIFPicker", "#gif-picker-tab-panel");
+					const SearchIcon = WebpackModules.getByProps("SearchIcon").default;
+					const Flex = WebpackModules.getByDisplayName("Flex");
 					Patcher.after(GIFPicker.component.prototype, "render", (_this, _, __) => {
 						if (!this.settings.forceShowFavoritesGIFs) return;
-						_this.setState({ resultType: "Favorites" });
+						const type = _this.props.query === '' ? "Favorites" : "Search"
+						if (type !== _this.state.resultType) {
+							_this.setState({ resultType: type });
+						}
+					});
+					Patcher.instead(GIFPicker.component.prototype, "renderHeader", (_this) => {
+						if (!this.settings.forceShowFavoritesGIFs) return GIFPicker.component.prototype.renderHeader();
+						return React.createElement(Flex, {
+							align: Flex.Align.CENTER
+						}, void 0, React.createElement(SearchIcon, {
+							className: classes.gutter.searchBar,
+							size: SearchIcon.Sizes.MEDIUM,
+							query: _this.props.query,
+							onChange: _this.handleChangeQuery,
+							onClear: _this.handleClearQuery,
+							placeholder: Strings.SEARCH_TENOR,
+							"aria-label": Strings.SEARCH_TENOR,
+							ref: _this.searchBarRef,
+							autoFocus: true
+						}));
 					});
 				}
 
